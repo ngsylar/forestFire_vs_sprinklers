@@ -3,6 +3,9 @@ from mesa.datacollection import DataCollector
 from mesa.space import Grid
 from mesa.time import RandomActivation
 
+from datetime import datetime
+from os import sep
+
 from .agent import TreeCell
 
 
@@ -23,6 +26,9 @@ class ForestFire(Model):
         self.schedule = RandomActivation(self)
         self.grid = Grid(width, height, torus=False)
 
+        self.density = density
+        self.fman_density = fman_density
+
         self.datacollector = DataCollector(
             {
                 "Fine": lambda m: self.count_type(m, "Fine"),
@@ -32,6 +38,16 @@ class ForestFire(Model):
             }
         )
 
+        self.finetrees = 0
+        self.datacollector_model = DataCollector(
+            {
+                "Forest Density": lambda m: self.density,
+                "Fireman Density": lambda m: self.fman_density,
+                "Finetrees": lambda m: self.finetrees,
+            }
+        )
+
+        self.alltrees = {}
         self.st98 = []
         self.st94 = []
         self.st86 = []
@@ -46,7 +62,8 @@ class ForestFire(Model):
                 new_fman.condition = "Fireman"
                 self.grid._place_agent((x, y), new_fman)
                 self.schedule.add(new_fman)
-                self.addStrength(x, y)
+                self.addStrength(x,y)
+                self.alltrees[str(x)+","+str(y)] = new_fman
 
             elif self.random.random() < density:
                 # Create a tree
@@ -65,8 +82,9 @@ class ForestFire(Model):
                 elif self.st40.count((x,y)):
                     new_tree.strength = 0.3
 
-                self.grid._place_agent((x, y), new_tree)
+                self.grid._place_agent((x,y), new_tree)
                 self.schedule.add(new_tree)
+                self.alltrees[str(x)+","+str(y)] = new_tree
             
 
         self.running = True
@@ -83,6 +101,34 @@ class ForestFire(Model):
         # Halt if no more fire
         if self.count_type(self, "On Fire") == 0:
             self.running = False
+            self.count_clusters(list(self.alltrees.keys()))
+
+            now = str(datetime.now()).replace(":", "-")
+            df_agent = self.datacollector.get_model_vars_dataframe()
+            df_agent.to_csv("dataframe" + sep + "agent_data forest_density=" + str(self.density) + " fireman_density=" + str(self.fman_density) + " " + now + ".csv")
+            
+            self.datacollector_model.collect(self)
+            df_model = self.datacollector_model.get_model_vars_dataframe()
+            df_model.to_csv("dataframe" + sep + "model_data forest_density=" + str(self.density) + " fireman_density=" + str(self.fman_density) + " " + now + ".csv")
+
+    def count_clusters(self, sublist):
+        for itree_orig in sublist:
+            if type(itree_orig) == tuple:
+                itree = str(itree_orig).replace("(","").replace(")","")
+            else:
+                itree = itree_orig
+            treeagent = self.alltrees.get(itree)
+
+            if (treeagent != None) and (not treeagent.counted) and ((treeagent.condition == "Fine") or (treeagent.condition == "Fireman")):
+                self.finetrees += 1
+                itree_parts = itree.split(",")
+                itree_pos = (int(itree_parts[0]),int(itree_parts[1]))
+                subsublist = self.grid.get_neighborhood(itree_pos, False)
+                self.count_clusters(subsublist)
+            
+            if (treeagent != None):
+                treeagent.counted = True
+
     
     def addStrength(self, x, y):
         self.st98.append((x+1,y-1))

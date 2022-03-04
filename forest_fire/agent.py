@@ -25,6 +25,7 @@ class TreeCell(Agent):
         self.pos = pos
         self.condition = "Fine"
         self.strength = 0
+        self.counted = False
 
     def step(self):
         """
