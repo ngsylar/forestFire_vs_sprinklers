@@ -17,7 +17,6 @@ class ForestFire(Model):
     def __init__(self, width=100, height=100, density=0.65, fman_density=0.01):
         """
         Create a new forest fire model.
-
         Args:
             width, height: The size of the grid to model
             density: What fraction of grid cells have a tree in them.
@@ -43,11 +42,19 @@ class ForestFire(Model):
             {
                 "Forest Density": lambda m: self.density,
                 "Fireman Density": lambda m: self.fman_density,
-                "Finetrees": lambda m: self.finetrees,
+                # "Finetrees": lambda m: self.finetrees,
+                "Saved Vegetation": lambda m: self.count_type(m, "Fine") / (self.count_type(m, "Fine") + self.count_type(m, "Burned Out")),
+                "Wasted Vegetation": lambda m: self.count_type(m, "Burned Out") / (self.count_type(m, "Fine") + self.count_type(m, "Burned Out")),
             }
         )
 
-        self.alltrees = {}
+        minitree = []
+        for i in range(0,100):
+            minitree.append(0)
+        self.alltrees = []
+        for i in range(0,100):
+            self.alltrees.append(minitree.copy());
+
         self.st98 = []
         self.st94 = []
         self.st86 = []
@@ -63,7 +70,7 @@ class ForestFire(Model):
                 self.grid._place_agent((x, y), new_fman)
                 self.schedule.add(new_fman)
                 self.addStrength(x,y)
-                self.alltrees[str(x)+","+str(y)] = new_fman
+                self.alltrees[x][y] = new_fman
 
             elif self.random.random() < density:
                 # Create a tree
@@ -84,7 +91,7 @@ class ForestFire(Model):
 
                 self.grid._place_agent((x,y), new_tree)
                 self.schedule.add(new_tree)
-                self.alltrees[str(x)+","+str(y)] = new_tree
+                self.alltrees[x][y] = new_tree
             
 
         self.running = True
@@ -101,7 +108,7 @@ class ForestFire(Model):
         # Halt if no more fire
         if self.count_type(self, "On Fire") == 0:
             self.running = False
-            self.count_clusters(list(self.alltrees.keys()))
+            # self.count_clusters()
 
             now = str(datetime.now()).replace(":", "-")
             df_agent = self.datacollector.get_model_vars_dataframe()
@@ -111,25 +118,23 @@ class ForestFire(Model):
             df_model = self.datacollector_model.get_model_vars_dataframe()
             df_model.to_csv("dataframe" + sep + "model_data forest_density=" + str(self.density) + " fireman_density=" + str(self.fman_density) + " " + now + ".csv")
 
-    def count_clusters(self, sublist):
-        for itree_orig in sublist:
-            if type(itree_orig) == tuple:
-                itree = str(itree_orig).replace("(","").replace(")","")
-            else:
-                itree = itree_orig
-            treeagent = self.alltrees.get(itree)
-
-            if (treeagent != None) and (not treeagent.counted) and ((treeagent.condition == "Fine") or (treeagent.condition == "Fireman")):
-                self.finetrees += 1
-                itree_parts = itree.split(",")
-                itree_pos = (int(itree_parts[0]),int(itree_parts[1]))
-                subsublist = self.grid.get_neighborhood(itree_pos, False)
-                self.count_clusters(subsublist)
-            
-            if (treeagent != None):
-                treeagent.counted = True
-
+    # def count_clusters(self):
+    #     for i in range(0,100):
+    #         for j in range (0,100):
+    #             if self.alltrees[i][j].condition == "Fine":
+    #                 self.finetrees += 1
+    #                 self.dofill(self.alltrees, i, j)
     
+    # def dofill(self, matrix, row, col):
+    #     if (row < 0) or (col < 0) or (row >= 100) or (col >= 100) or (matrix[row][col].condition != "Fine"):
+    #         return
+
+    #     matrix[row][col].condition = "Fine"
+    #     dr = [-1,0,1,0]
+    #     dc = [0,1,0,-1]
+    #     for i in range(0,4):
+    #         self.dofill(matrix, row+dr[i], col+dc[i])
+
     def addStrength(self, x, y):
         self.st98.append((x+1,y-1))
         self.st98.append((x+1,y))
