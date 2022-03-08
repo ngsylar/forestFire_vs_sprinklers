@@ -33,8 +33,15 @@ A simulação acaba quando não houver mais fogo atuando na simulação ou se in
 ## Coleta de dados:
 Após o fim de uma simulação, dois arquivos de extensão .csv são gerados, cada um contendo dados relevantes referentes a observação do experimento, sendo eles:
 
-agent_data: contendo valores assumidos pelas variáveis a nível de agente durante toda a execução da simulação, em forma de tabela. A primeira coluna mostra a iteração e funciona como se fosse o decorrer do tempo durante a observação de um fenômeno real. A segunda coluna mostra a quantidade de árvores que até a enésima iteração não foram afetadas pela propagação do fogo. A terceira coluna mostra a quantidade de árvores em chamas e a quarta representa a quantidade de árvores danificadas pelo fogo.
+agent_data: contendo valores assumidos pelas variáveis a nível de agente durante toda a execução da simulação, em forma de tabela.
+* A primeira coluna mostra a iteração e funciona como se fosse o decorrer do tempo durante a observação de um fenômeno real.
+* A segunda coluna mostra a quantidade de árvores que até a enésima iteração não foram afetadas pela propagação do fogo.
+* A terceira coluna mostra a quantidade de árvores em chamas. 
+* A quarta representa a quantidade de árvores danificadas pelo fogo.
+* A quinta coluna mostra a quantidade de árvores nas quais o fogo foi rapidamente apagado, evitando a propagação do incêndio, até a enésima iteração.
 
-A quinta coluna fornece informação sobre a quantidade de bombeiros presentes no combate ao fogo. O valor assumido por essa variável recebe influência direta do valor de quantidade de grupos de bombeiros, escolhido pelo usuário, embora o número permaneça fixo até o final da simulação.
-
-model_data: esse arquivo apresenta as densidades escolhidas pelo usuário para uma simulação e mostra a quantidade de árvores afetadas e árvores não afetadas pelo formo em termos de porcentagem, fornecendo assim uma idéia geral sobre a eficácia da ação dos agentes inibidores, chamados de bombeiros.
+model_data: esse arquivo apresenta, a partir da segunda coluna, duas colunas com o valor dos parâmetros escolhido pelo usuário, sendo eles a densidade da floresta e a quantidade de grupos de bombeiros atuantes no combate às chamas. As próximas três colunas mostram no final da simulação, respectivamente:
+* a quantidade de árvores não afetadas pelas chamas e árvores não afetadas pelo fogo, em termos de porcentagem, e esse valor pode ter recebido influência indireta da ação dos bombeiros \(porque as chamas foram impedidas de chegar a algumas árvores\);
+* a quantidade de árvores cujo fogo foi rapidamente apagado pela ação dos bombeiros, em porcentagem, impedindo a propagação das chamas sobre ávores ainda não afetadas;
+* e por fim a quantidade, em porcentagem, de vegetação queimada;
+fornecendo assim uma idéia geral sobre a eficácia da ação dos agentes inibidores.
