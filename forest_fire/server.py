@@ -30,8 +30,8 @@ model_params = {
     "height": 100,
     "width": 100,
     "density": UserSettableParameter("slider", "Tree density", 0.65, 0.01, 1.0, 0.01),
-    "fman_density": UserSettableParameter("slider", "Number of fireman groups", 0.01, 0.0, 0.025, 0.0025),
-    # "fman_density": UserSettableParameter("slider", "Number of fireman groups", 4.0, 0.0, 10.0, 1.0),
+    "fman_groups": UserSettableParameter("slider", "Number of fireman groups", 4.0, 0.0, 10.0, 1.0),
+    # "fman_density": UserSettableParameter("slider", "Number of fireman groups", 0.01, 0.0, 0.025, 0.0025),
 }
 server = ModularServer(
     ForestFire, [canvas_element, tree_chart, pie_chart], "Forest Fire", model_params

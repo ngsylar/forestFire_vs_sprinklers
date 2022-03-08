@@ -14,7 +14,7 @@ class ForestFire(Model):
     Simple Forest Fire model.
     """
 
-    def __init__(self, width=100, height=100, density=0.65, fman_density=0.01):
+    def __init__(self, width=100, height=100, density=0.65, fman_groups=4):
         """
         Create a new forest fire model.
         Args:
@@ -26,7 +26,7 @@ class ForestFire(Model):
         self.grid = Grid(width, height, torus=False)
 
         self.density = density
-        self.fman_density = fman_density
+        self.fman_density = fman_groups * 0.0025
 
         self.datacollector = DataCollector(
             {
@@ -64,7 +64,7 @@ class ForestFire(Model):
 
         # Place a tree in each cell with Prob = density
         for (contents, x, y) in self.grid.coord_iter():
-            if self.random.random() < fman_density:
+            if self.random.random() < self.fman_density:
                 # Create a fireman
                 new_fman = TreeCell((x, y), self)
                 new_fman.condition = "Fireman"
