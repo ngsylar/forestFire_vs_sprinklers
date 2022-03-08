@@ -4,7 +4,7 @@ from mesa.visualization.UserParam import UserSettableParameter
 
 from .model import ForestFire
 
-COLORS = {"Fine": "#00AA00", "On Fire": "#880000", "Burned Out": "#000000", "Saved": "#0000FF"}
+COLORS = {"Fine": "#00AA00", "On Fire": "#880000", "Burned Out": "#000000", "Protected": "#0000FF"}
 
 
 def forest_fire_portrayal(tree):

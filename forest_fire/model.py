@@ -26,6 +26,7 @@ class ForestFire(Model):
         self.grid = Grid(width, height, torus=False)
 
         self.density = density
+        self.fman_groups = fman_groups
         self.fman_density = fman_groups * 0.0025
 
         self.datacollector = DataCollector(
@@ -33,7 +34,7 @@ class ForestFire(Model):
                 "Fine": lambda m: self.count_type(m, "Fine") + self.count_type(m, "Fireman"),
                 "On Fire": lambda m: self.count_type(m, "On Fire"),
                 "Burned Out": lambda m: self.count_type(m, "Burned Out"),
-                "Saved": lambda m: self.count_type(m, "Saved"),
+                "Protected": lambda m: self.count_type(m, "Protected"),
             }
         )
 
@@ -43,18 +44,11 @@ class ForestFire(Model):
                 "Forest Density": lambda m: self.density,
                 "Number of fireman groups": lambda m: fman_groups,
                 # "Finetrees": lambda m: self.finetrees,
-                "Unaffected Vegetation": lambda m: self.count_type(m, "Fine") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Saved") + self.count_type(m, "Burned Out")),
-                "Saved Vegetation": lambda m: (self.count_type(m, "Saved") + self.count_type(m, "Fireman")) / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Saved") + self.count_type(m, "Burned Out")),
-                "Wasted Vegetation": lambda m: self.count_type(m, "Burned Out") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Saved") + self.count_type(m, "Burned Out")),
+                "Unaffected Vegetation": lambda m: self.count_type(m, "Fine") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
+                "Saved Vegetation": lambda m: (self.count_type(m, "Protected") + self.count_type(m, "Fireman")) / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
+                "Wasted Vegetation": lambda m: self.count_type(m, "Burned Out") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
             }
         )
-
-        minitree = []
-        for i in range(0,100):
-            minitree.append(0)
-        self.alltrees = []
-        for i in range(0,100):
-            self.alltrees.append(minitree.copy());
 
         self.st98 = []
         self.st94 = []
@@ -72,7 +66,6 @@ class ForestFire(Model):
                 self.grid._place_agent((x, y), new_fman)
                 self.schedule.add(new_fman)
                 self.addStrength(x,y)
-                self.alltrees[x][y] = new_fman
 
             elif self.random.random() < density:
                 # Create a tree
@@ -93,8 +86,6 @@ class ForestFire(Model):
 
                 self.grid._place_agent((x,y), new_tree)
                 self.schedule.add(new_tree)
-                self.alltrees[x][y] = new_tree
-            
 
         self.running = True
         self.datacollector.collect(self)
@@ -114,47 +105,11 @@ class ForestFire(Model):
 
             now = str(datetime.now()).replace(":", "-")
             df_agent = self.datacollector.get_model_vars_dataframe()
-            df_agent.to_csv("dataframe" + sep + "agent_data forest_density=" + str(self.density) + " fireman_density=" + str(self.fman_density) + " " + now + ".csv")
+            df_agent.to_csv("dataframe" + sep + "agent_data forest_density=" + str(self.density) + " fireman_groups=" + str(self.fman_groups) + " " + now + ".csv")
             
-            # self.countClusters()
-
             self.datacollector_model.collect(self)
             df_model = self.datacollector_model.get_model_vars_dataframe()
-            df_model.to_csv("dataframe" + sep + "model_data forest_density=" + str(self.density) + " fireman_density=" + str(self.fman_density) + " " + now + ".csv")
-
-
-    # def countClusters(self):
-    #     cnt = 0
-    #     for line in self.alltrees:
-    #         for tree in line:
-    #             if (tree != 0) and (not tree.counted) and (tree.condition != "Burned Out"):
-    #                 cur_cnt = 0
-    #                 cnt += self.cleanCell(tree, cur_cnt)
-    
-    # def cleanCell(self, tree, cur_cnt):
-    #     tree.counted = True
-
-    #     if self.fineTreeExists(tree.pos[0]-1,tree.pos[1]):
-    #         self.cleanCell(self.alltrees[tree.pos[0]-1][tree.pos[1]], cur_cnt)
-    #         cur_cnt = 1
-    #     if self.fineTreeExists(tree.pos[0]+1,tree.pos[1]):
-    #         self.cleanCell(self.alltrees[tree.pos[0]+1][tree.pos[1]], cur_cnt)
-    #         cur_cnt = 1
-    #     if self.fineTreeExists(tree.pos[0],tree.pos[1]-1):
-    #         self.cleanCell(self.alltrees[tree.pos[0]][tree.pos[1]-1], cur_cnt)
-    #         cur_cnt = 1
-    #     if self.fineTreeExists(tree.pos[0],tree.pos[1]+1):
-    #         self.cleanCell(self.alltrees[tree.pos[0]][tree.pos[1]+1], cur_cnt)
-    #         cur_cnt = 1
-
-    #     return cur_cnt
-    
-    # def fineTreeExists(self, cx, cy):
-    #     if (cx >= 0) and (cx < 100) and (cy <= 0) and (cy < 100):
-    #         tree = self.alltrees[cx][cy]
-    #         if (tree != 0) and (tree.condition != "Burned Out"):
-    #             return True
-    #     else: return False
+            df_model.to_csv("dataframe" + sep + "model_data forest_density=" + str(self.density) + " fireman_groups=" + str(self.fman_groups) + " " + now + ".csv")
 
 
     def addStrength(self, x, y):

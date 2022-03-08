@@ -25,7 +25,6 @@ class TreeCell(Agent):
         self.pos = pos
         self.condition = "Fine"
         self.strength = 0
-        self.counted = False
 
     def step(self):
         """
@@ -34,10 +33,10 @@ class TreeCell(Agent):
         if self.condition == "On Fire":
             for neighbor in self.model.grid.neighbor_iter(self.pos):
                 if (neighbor.condition == "Fireman"):
-                    neighbor.condition = "Saved"
-                if (neighbor.condition == "Fine") or ((neighbor.condition == "Saved")):
+                    neighbor.condition = "Protected"
+                if (neighbor.condition == "Fine") or ((neighbor.condition == "Protected")):
                     if self.random.random() > neighbor.strength:
                         neighbor.condition = "On Fire"
                     else:
-                        neighbor.condition = "Saved"
+                        neighbor.condition = "Protected"
             self.condition = "Burned Out"
