@@ -44,4 +44,5 @@ model_data: esse arquivo apresenta, a partir da segunda coluna, duas colunas com
 * a quantidade de árvores não afetadas pelas chamas e árvores não afetadas pelo fogo, em termos de porcentagem, e esse valor pode ter recebido influência indireta da ação dos bombeiros \(porque as chamas foram impedidas de chegar a algumas árvores\);
 * a quantidade de árvores cujo fogo foi rapidamente apagado pela ação dos bombeiros, em porcentagem, impedindo a propagação das chamas sobre ávores ainda não afetadas;
 * e por fim a quantidade, em porcentagem, de vegetação queimada;
+
 fornecendo assim uma idéia geral sobre a eficácia da ação dos agentes inibidores.
