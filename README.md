@@ -1,5 +1,6 @@
 # forest_fire_vs_fireman
 Experimento da tarefa 5.2 de Computação Experimental 2021/2
+
     Gabriel Rocha Fontenele
     Matrícula: 15/0126760
 
@@ -24,6 +25,7 @@ Durante uma queimada, a medida que o fogo se aproxima de uma árvore próxima a 
 
 ## Como usar o simulador:
 A partir do diretório raiz do framework mesa, rode o comando
+
     mesa runserver \(caminho da pasta\)/forest_fire
 
 A partir da interface web, pode se modificar os valores das densidades, tanto das ávores quanto dos bombeiros, através dos seus respectivos sliders, com clique e arraste. Quando maior for o valor de cada densidade, maior será o número de agentes presentes na grade de ocupação e consequentemente participantes da simulação após o início da simulação.
