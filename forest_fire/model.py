@@ -41,7 +41,7 @@ class ForestFire(Model):
         self.datacollector_model = DataCollector(
             {
                 "Forest Density": lambda m: self.density,
-                "Number of fireman groups": lambda m: self.fman_density,
+                "Number of fireman groups": lambda m: fman_groups,
                 # "Finetrees": lambda m: self.finetrees,
                 "Unaffected Vegetation": lambda m: self.count_type(m, "Fine") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Saved") + self.count_type(m, "Burned Out")),
                 "Saved Vegetation": lambda m: (self.count_type(m, "Saved") + self.count_type(m, "Fireman")) / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Saved") + self.count_type(m, "Burned Out")),
@@ -116,26 +116,46 @@ class ForestFire(Model):
             df_agent = self.datacollector.get_model_vars_dataframe()
             df_agent.to_csv("dataframe" + sep + "agent_data forest_density=" + str(self.density) + " fireman_density=" + str(self.fman_density) + " " + now + ".csv")
             
+            # self.countClusters()
+
             self.datacollector_model.collect(self)
             df_model = self.datacollector_model.get_model_vars_dataframe()
             df_model.to_csv("dataframe" + sep + "model_data forest_density=" + str(self.density) + " fireman_density=" + str(self.fman_density) + " " + now + ".csv")
 
-    # def count_clusters(self):
-    #     for i in range(0,100):
-    #         for j in range (0,100):
-    #             if self.alltrees[i][j].condition == "Fine":
-    #                 self.finetrees += 1
-    #                 self.dofill(self.alltrees, i, j)
-    
-    # def dofill(self, matrix, row, col):
-    #     if (row < 0) or (col < 0) or (row >= 100) or (col >= 100) or (matrix[row][col].condition != "Fine"):
-    #         return
 
-    #     matrix[row][col].condition = "Fine"
-    #     dr = [-1,0,1,0]
-    #     dc = [0,1,0,-1]
-    #     for i in range(0,4):
-    #         self.dofill(matrix, row+dr[i], col+dc[i])
+    # def countClusters(self):
+    #     cnt = 0
+    #     for line in self.alltrees:
+    #         for tree in line:
+    #             if (tree != 0) and (not tree.counted) and (tree.condition != "Burned Out"):
+    #                 cur_cnt = 0
+    #                 cnt += self.cleanCell(tree, cur_cnt)
+    
+    # def cleanCell(self, tree, cur_cnt):
+    #     tree.counted = True
+
+    #     if self.fineTreeExists(tree.pos[0]-1,tree.pos[1]):
+    #         self.cleanCell(self.alltrees[tree.pos[0]-1][tree.pos[1]], cur_cnt)
+    #         cur_cnt = 1
+    #     if self.fineTreeExists(tree.pos[0]+1,tree.pos[1]):
+    #         self.cleanCell(self.alltrees[tree.pos[0]+1][tree.pos[1]], cur_cnt)
+    #         cur_cnt = 1
+    #     if self.fineTreeExists(tree.pos[0],tree.pos[1]-1):
+    #         self.cleanCell(self.alltrees[tree.pos[0]][tree.pos[1]-1], cur_cnt)
+    #         cur_cnt = 1
+    #     if self.fineTreeExists(tree.pos[0],tree.pos[1]+1):
+    #         self.cleanCell(self.alltrees[tree.pos[0]][tree.pos[1]+1], cur_cnt)
+    #         cur_cnt = 1
+
+    #     return cur_cnt
+    
+    # def fineTreeExists(self, cx, cy):
+    #     if (cx >= 0) and (cx < 100) and (cy <= 0) and (cy < 100):
+    #         tree = self.alltrees[cx][cy]
+    #         if (tree != 0) and (tree.condition != "Burned Out"):
+    #             return True
+    #     else: return False
+
 
     def addStrength(self, x, y):
         self.st98.append((x+1,y-1))

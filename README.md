@@ -9,7 +9,7 @@ O modelo escolhido consiste no modelo de exemplo para o framework MESA padrão r
 A adição foi pensada para responder a seguinte pergunta: "o que acontece se houver um agente inibidor do fenômeno fogo?"
 
 ## Hipótese levantada: 
-Aumentando-se a densidade de agentes inibidores de fogo, bombeiros, consequentemente maior será a quantidade desse tipo de agente presente na floresta e maior a probabilidade de o fogo cessar ou pelo menos reduzir os danos causados à vegetação por uma queimada.
+Aumentando-se a quantidade de agentes inibidores de fogo, bombeiros, consequentemente maior será a quantidade desse tipo de agente presente na floresta e maior a probabilidade de o fogo cessar ou pelo menos reduzir os danos causados à vegetação por uma queimada.
 
 ## Alterações e justificativas:
 
@@ -24,7 +24,7 @@ Durante uma queimada, a medida que o fogo se aproxima de uma árvore próxima a 
 
 ## Como usar o simulador:
 A partir do diretório raiz do framework mesa, rode o comando
-    mesa runserver caminho/forest_fire
+    mesa runserver \(caminho da pasta\)/forest_fire
 
 A partir da interface web, pode se modificar os valores das densidades, tanto das ávores quanto dos bombeiros, através dos seus respectivos sliders, com clique e arraste. Quando maior for o valor de cada densidade, maior será o número de agentes presentes na grade de ocupação e consequentemente participantes da simulação após o início da simulação.
 
