@@ -33,6 +33,11 @@ class TreeCell(Agent):
         """
         if self.condition == "On Fire":
             for neighbor in self.model.grid.neighbor_iter(self.pos):
-                if (neighbor.condition == "Fine") and (self.random.random() > neighbor.strength):
-                    neighbor.condition = "On Fire"
+                if (neighbor.condition == "Fireman"):
+                    neighbor.condition = "Saved"
+                if (neighbor.condition == "Fine") or ((neighbor.condition == "Saved")):
+                    if self.random.random() > neighbor.strength:
+                        neighbor.condition = "On Fire"
+                    else:
+                        neighbor.condition = "Saved"
             self.condition = "Burned Out"

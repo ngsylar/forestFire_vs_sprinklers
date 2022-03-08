@@ -4,11 +4,11 @@ from mesa.visualization.UserParam import UserSettableParameter
 
 from .model import ForestFire
 
-COLORS = {"Fine": "#00AA00", "On Fire": "#880000", "Burned Out": "#000000", "Fireman": "#0000FF"}
+COLORS = {"Fine": "#00AA00", "On Fire": "#880000", "Burned Out": "#000000", "Saved": "#0000FF"}
 
 
 def forest_fire_portrayal(tree):
-    if tree is None:
+    if (tree is None) or (tree.condition == "Fireman"):
         return
     portrayal = {"Shape": "rect", "w": 1, "h": 1, "Filled": "true", "Layer": 0}
     (x, y) = tree.pos
@@ -30,7 +30,8 @@ model_params = {
     "height": 100,
     "width": 100,
     "density": UserSettableParameter("slider", "Tree density", 0.65, 0.01, 1.0, 0.01),
-    "fman_density": UserSettableParameter("slider", "Fireman density", 0.01, 0.0025, 0.025, 0.0025),
+    "fman_density": UserSettableParameter("slider", "Number of fireman groups", 0.01, 0.0, 0.025, 0.0025),
+    # "fman_density": UserSettableParameter("slider", "Number of fireman groups", 4.0, 0.0, 10.0, 1.0),
 }
 server = ModularServer(
     ForestFire, [canvas_element, tree_chart, pie_chart], "Forest Fire", model_params

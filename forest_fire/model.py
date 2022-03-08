@@ -30,10 +30,10 @@ class ForestFire(Model):
 
         self.datacollector = DataCollector(
             {
-                "Fine": lambda m: self.count_type(m, "Fine"),
+                "Fine": lambda m: self.count_type(m, "Fine") + self.count_type(m, "Fireman"),
                 "On Fire": lambda m: self.count_type(m, "On Fire"),
                 "Burned Out": lambda m: self.count_type(m, "Burned Out"),
-                "Fireman": lambda m: self.count_type(m, "Fireman"),
+                "Saved": lambda m: self.count_type(m, "Saved"),
             }
         )
 
@@ -41,10 +41,11 @@ class ForestFire(Model):
         self.datacollector_model = DataCollector(
             {
                 "Forest Density": lambda m: self.density,
-                "Fireman Density": lambda m: self.fman_density,
+                "Number of fireman groups": lambda m: self.fman_density,
                 # "Finetrees": lambda m: self.finetrees,
-                "Saved Vegetation": lambda m: self.count_type(m, "Fine") / (self.count_type(m, "Fine") + self.count_type(m, "Burned Out")),
-                "Wasted Vegetation": lambda m: self.count_type(m, "Burned Out") / (self.count_type(m, "Fine") + self.count_type(m, "Burned Out")),
+                "Unaffected Vegetation": lambda m: self.count_type(m, "Fine") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Saved") + self.count_type(m, "Burned Out")),
+                "Saved Vegetation": lambda m: (self.count_type(m, "Saved") + self.count_type(m, "Fireman")) / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Saved") + self.count_type(m, "Burned Out")),
+                "Wasted Vegetation": lambda m: self.count_type(m, "Burned Out") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Saved") + self.count_type(m, "Burned Out")),
             }
         )
 
@@ -67,6 +68,7 @@ class ForestFire(Model):
                 # Create a fireman
                 new_fman = TreeCell((x, y), self)
                 new_fman.condition = "Fireman"
+                new_fman.strength = 0.92
                 self.grid._place_agent((x, y), new_fman)
                 self.schedule.add(new_fman)
                 self.addStrength(x,y)
