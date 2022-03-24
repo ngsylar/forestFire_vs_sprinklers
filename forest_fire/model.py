@@ -37,12 +37,12 @@ class ForestFire(Model):
 
         self.datacollector = DataCollector(
             {
-                "Fine": lambda m: self.count_type(m, "Fine") + self.count_type(m, "Fireman"),
+                "Fine": lambda m: self.count_type(m, "Fine") + self.count_type(m, "Sprinkler"),
                 "On Fire": lambda m: self.count_type(m, "On Fire"),
                 "Burned Out": lambda m: self.count_type(m, "Burned Out"),
                 "Protected": lambda m: self.count_type(m, "Protected"),
                 "Clusters": lambda m: self.cluster_count,
-                "Average Cluster Size": lambda m: (self.count_type(m, "Fine") + self.count_type(m, "Protected") + self.count_type(m, "Fireman")) / self.cluster_count if self.cluster_count != 0 else 0,
+                "Average Cluster Size": lambda m: (self.count_type(m, "Fine") + self.count_type(m, "Protected") + self.count_type(m, "Sprinkler")) / self.cluster_count if self.cluster_count != 0 else 0,
             }
         )
 
@@ -50,9 +50,9 @@ class ForestFire(Model):
             {
                 "Forest Density": lambda m: self.tree_density,
                 "Sprinkler Density": lambda m: sprinkler_density,
-                "Unaffected Vegetation": lambda m: self.count_type(m, "Fine") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
-                "Saved Vegetation": lambda m: (self.count_type(m, "Protected") + self.count_type(m, "Fireman")) / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
-                "Wasted Vegetation": lambda m: self.count_type(m, "Burned Out") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
+                "Unaffected Vegetation": lambda m: self.count_type(m, "Fine") / (self.count_type(m, "Fine") + self.count_type(m, "Sprinkler") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
+                "Saved Vegetation": lambda m: (self.count_type(m, "Protected") + self.count_type(m, "Sprinkler")) / (self.count_type(m, "Fine") + self.count_type(m, "Sprinkler") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
+                "Wasted Vegetation": lambda m: self.count_type(m, "Burned Out") / (self.count_type(m, "Fine") + self.count_type(m, "Sprinkler") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
             }
         )
 
@@ -70,7 +70,7 @@ class ForestFire(Model):
             if self.random.random() < self.fman_density:
                 # Create a fireman
                 new_fman = TreeCell((x, y), self)
-                new_fman.condition = "Fireman"
+                new_fman.condition = "Sprinkler"
                 new_fman.strength = 0.92
                 self.grid._place_agent((x, y), new_fman)
                 self.schedule.add(new_fman)
@@ -109,7 +109,7 @@ class ForestFire(Model):
         for x in range(0,self.gridsize):
             for y in range(0,self.gridsize):
                 tree = self.alltrees[x][y]
-                if (type(tree) == TreeCell) and ((tree.condition == "Fine") or (tree.condition == "Protected") or (tree.condition == "Fireman")):
+                if (type(tree) == TreeCell) and ((tree.condition == "Fine") or (tree.condition == "Protected") or (tree.condition == "Sprinkler")):
                     self.minitrees[x][y] = 1
         self.cluster_count = countIslands(self.minitrees)
 
@@ -128,12 +128,12 @@ class ForestFire(Model):
         if self.count_type(self, "On Fire") == 0:
             self.running = False
 
-            now = str(datetime.now()).replace(":", "-")
-            df_agent = self.datacollector.collect(self)
+            # now = str(datetime.now()).replace(":", "-")
+            # df_agent = self.datacollector.get_model_vars_dataframe()
             # df_agent.to_csv("dataframe" + sep + "agent_data tree_density=" + str(self.tree_density) + " fireman_groups=" + str(self.sprinkler_density) + " " + now + ".csv")
             
             self.datacollector_model.collect(self)
-            df_model = self.datacollector_model.collect(self)
+            # df_model = self.datacollector_model.get_model_vars_dataframe()
             # df_model.to_csv("dataframe" + sep + "model_data tree_density=" + str(self.tree_density) + " fireman_groups=" + str(self.sprinkler_density) + " " + now + ".csv")
     
 
@@ -155,9 +155,10 @@ def batch_run():
         'tree_density': 0.65
     }
     variable_params = {
-        'sprinkler_density': [0.0, 0.1, 0.2, 0.4, 0.6, 0.8]
+        # 'sprinkler_density': [0.0, 0.1, 0.2, 0.4, 0.6, 0.8]
+        'sprinkler_density': [0.4]
     }
-    experiments_per_parameter_configuration = 2
+    experiments_per_parameter_configuration = 3
     max_steps_per_simulation = 300
 
     batch_run = BatchRunner(
@@ -167,23 +168,24 @@ def batch_run():
         iterations=experiments_per_parameter_configuration,
         max_steps=max_steps_per_simulation,
         model_reporters = {
-            'Clusters': allclusters,
-            'Average Cluster Size': clusterssize
+            "Clusters": allclusters,
+            "Average Cluster Size": clusterssize,
+            "Trees Fine": statefine,
+            "Trees On Fire": statefire,
+            "Trees Burned Out": stateburned,
+            "Trees Protected": stateprotected
         },
-        # agent_reporters = {
-        #     "Fine": lambda m: self.count_type(m, "Fine") + self.count_type(m, "Fireman"),
-        #     "On Fire": lambda m: self.count_type(m, "On Fire"),
-        #     "Burned Out": lambda m: self.count_type(m, "Burned Out"),
-        #     "Protected": lambda m: self.count_type(m, "Protected"),
-        # }
+        agent_reporters = {
+            "Condition": 'condition'
+        }
     )
     batch_run.run_all()
 
     run_model_data = batch_run.get_model_vars_dataframe()
-    # run_agent_data = batch_run.get_agent_vars_dataframe()
+    run_agent_data = batch_run.get_agent_vars_dataframe()
 
     now = str(datetime.now()).replace(':','-')
     file_name_suffix =  ('_iter_'+str(experiments_per_parameter_configuration)+
                         '_steps_'+str(max_steps_per_simulation)+'_'+now)
     run_model_data.to_csv('Experimento-forest_fire_vs_sprinklers'+sep+'model_data'+file_name_suffix+'.csv')
-    # run_agent_data.to_csv('agent_data'+file_name_suffix+'.csv')
+    run_agent_data.to_csv('Experimento-forest_fire_vs_sprinklers'+sep+'agent_data'+file_name_suffix+'.csv')

@@ -5,7 +5,7 @@ def allclusters(model):
 
 def clusterssize(model):
     try:
-        return model.count_type(model, "Fine") + model.count_type(model, "Protected") + model.count_type(model, "Fireman") / model.cluster_count
+        return model.count_type(model, "Fine") + model.count_type(model, "Protected") + model.count_type(model, "Sprinkler") / model.cluster_count
     except:
         return 0
 
@@ -13,7 +13,7 @@ def statefine(model):
     return model.count_type(model, "Fine")
 
 def stateprotected(model):
-    return model.count_type(model, "Protected") + model.count_type(model, "Fireman")
+    return model.count_type(model, "Protected") + model.count_type(model, "Sprinkler")
 
 def statefire(model):
     return model.count_type(model, "On Fire")

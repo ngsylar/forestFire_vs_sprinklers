@@ -7,7 +7,7 @@ from .model import ForestFire
 COLORS = {"Fine": "#00AA00", "On Fire": "#880000", "Burned Out": "#000000", "Protected": "#0000FF"}
 
 def forest_fire_portrayal(tree):
-    if (tree is None) or (tree.condition == "Fireman"):
+    if (tree is None) or (tree.condition == "Sprinkler"):
         return
     portrayal = {"Shape": "rect", "w": 1, "h": 1, "Filled": "true", "Layer": 0}
     (x, y) = tree.pos
