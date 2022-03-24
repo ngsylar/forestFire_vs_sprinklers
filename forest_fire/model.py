@@ -8,13 +8,20 @@ from os import sep
 
 from .agent import TreeCell
 
+import sys
+from .sylar_bib import SuperGraph
+from .sylar_bib import addStrength
+from .sylar_bib import newMatrix
+
 
 class ForestFire(Model):
     """
     Simple Forest Fire model.
     """
 
-    def __init__(self, width=100, height=100, density=0.65, fman_groups=4):
+    def __init__(self, width=60, height=60, density=0.65, fman_groups=0.4):
+        sys.setrecursionlimit(3900)
+        self.gridsize = 60
         """
         Create a new forest fire model.
         Args:
@@ -27,7 +34,7 @@ class ForestFire(Model):
 
         self.density = density
         self.fman_groups = fman_groups
-        self.fman_density = fman_groups * 0.0025
+        self.fman_density = fman_groups * 0.025
 
         self.datacollector = DataCollector(
             {
@@ -35,6 +42,8 @@ class ForestFire(Model):
                 "On Fire": lambda m: self.count_type(m, "On Fire"),
                 "Burned Out": lambda m: self.count_type(m, "Burned Out"),
                 "Protected": lambda m: self.count_type(m, "Protected"),
+                "Clusters": lambda m: self.cluster_count,
+                "Average Cluster Size": lambda m: (self.count_type(m, "Fine") + self.count_type(m, "Protected") + self.count_type(m, "Fireman")) / self.cluster_count,
             }
         )
 
@@ -42,13 +51,16 @@ class ForestFire(Model):
         self.datacollector_model = DataCollector(
             {
                 "Forest Density": lambda m: self.density,
-                "Number of fireman groups": lambda m: fman_groups,
+                "Fireman Groups Occupation": lambda m: fman_groups,
                 # "Finetrees": lambda m: self.finetrees,
                 "Unaffected Vegetation": lambda m: self.count_type(m, "Fine") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
                 "Saved Vegetation": lambda m: (self.count_type(m, "Protected") + self.count_type(m, "Fireman")) / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
                 "Wasted Vegetation": lambda m: self.count_type(m, "Burned Out") / (self.count_type(m, "Fine") + self.count_type(m, "Fireman") + self.count_type(m, "Protected") + self.count_type(m, "Burned Out")),
             }
         )
+
+        self.alltrees = newMatrix(self.gridsize)
+        self.cluster_count = 0
 
         self.st98 = []
         self.st94 = []
@@ -65,7 +77,8 @@ class ForestFire(Model):
                 new_fman.strength = 0.92
                 self.grid._place_agent((x, y), new_fman)
                 self.schedule.add(new_fman)
-                self.addStrength(x,y)
+                addStrength(self,x,y)
+                self.alltrees[x][y] = new_fman
 
             elif self.random.random() < density:
                 # Create a tree
@@ -86,22 +99,38 @@ class ForestFire(Model):
 
                 self.grid._place_agent((x,y), new_tree)
                 self.schedule.add(new_tree)
+                self.alltrees[x][y] = new_tree
+        
+        self.count_clusters()
 
         self.running = True
         self.datacollector.collect(self)
+
+
+    def count_clusters(self):
+        self.minitrees = newMatrix(self.gridsize)
+        for x in range(0,self.gridsize):
+            for y in range(0,self.gridsize):
+                tree = self.alltrees[x][y]
+                if (type(tree) == TreeCell) and (tree.condition == "Fine"):
+                    self.minitrees[x][y] = 1
+        supergraph = SuperGraph(self.gridsize,self.gridsize,self.minitrees)
+        self.cluster_count = supergraph.group()
+
 
     def step(self):
         """
         Advance the model by one step.
         """
         self.schedule.step()
+
+        self.count_clusters()
         # collect data
         self.datacollector.collect(self)
 
         # Halt if no more fire
         if self.count_type(self, "On Fire") == 0:
             self.running = False
-            # self.count_clusters()
 
             now = str(datetime.now()).replace(":", "-")
             df_agent = self.datacollector.get_model_vars_dataframe()
@@ -110,88 +139,7 @@ class ForestFire(Model):
             self.datacollector_model.collect(self)
             df_model = self.datacollector_model.get_model_vars_dataframe()
             df_model.to_csv("dataframe" + sep + "model_data forest_density=" + str(self.density) + " fireman_groups=" + str(self.fman_groups) + " " + now + ".csv")
-
-
-    def addStrength(self, x, y):
-        self.st98.append((x+1,y-1))
-        self.st98.append((x+1,y))
-        self.st98.append((x+1,y+1))
-
-        self.st98.append((x+2,y-2))
-        self.st98.append((x+2,y-1))
-        self.st98.append((x+2,y))
-        self.st98.append((x+2,y+1))
-        self.st98.append((x+2,y+2))
-
-        self.st94.append((x+3,y-3))
-        self.st94.append((x+3,y-2))
-        self.st94.append((x+3,y-1))
-        self.st94.append((x+3,y))
-        self.st94.append((x+3,y+1))
-        self.st94.append((x+3,y+2))
-        self.st94.append((x+3,y+3))
-
-        self.st94.append((x+4,y-4))
-        self.st94.append((x+4,y-3))
-        self.st94.append((x+4,y-2))
-        self.st94.append((x+4,y-1))
-        self.st94.append((x+4,y))
-        self.st94.append((x+4,y+1))
-        self.st94.append((x+4,y+2))
-        self.st94.append((x+4,y+3))
-        self.st94.append((x+4,y+4))
-        
-        self.st86.append((x+5,y-5))
-        self.st86.append((x+5,y-4))
-        self.st86.append((x+5,y-3))
-        self.st86.append((x+5,y-2))
-        self.st86.append((x+5,y-1))
-        self.st86.append((x+5,y))
-        self.st86.append((x+5,y+1))
-        self.st86.append((x+5,y+2))
-        self.st86.append((x+5,y+3))
-        self.st86.append((x+5,y+5))
-
-        self.st86.append((x+6,y-6))
-        self.st86.append((x+6,y-5))
-        self.st86.append((x+6,y-4))
-        self.st86.append((x+6,y-3))
-        self.st86.append((x+6,y-2))
-        self.st86.append((x+6,y-1))
-        self.st86.append((x+6,y))
-        self.st86.append((x+6,y+1))
-        self.st86.append((x+6,y+2))
-        self.st86.append((x+6,y+3))
-        self.st86.append((x+6,y+5))
-        self.st86.append((x+6,y+6))
-
-        self.st70.append((x+7,y-7))
-        self.st70.append((x+7,y-6))
-        self.st70.append((x+7,y-5))
-        self.st70.append((x+7,y-4))
-        self.st70.append((x+7,y-3))
-        self.st70.append((x+7,y-2))
-        self.st70.append((x+7,y-1))
-        self.st70.append((x+7,y))
-        self.st70.append((x+7,y+1))
-        self.st70.append((x+7,y+2))
-        self.st70.append((x+7,y+3))
-        self.st70.append((x+7,y+5))
-        self.st70.append((x+7,y+6))
-        self.st70.append((x+7,y+7))
-
-        self.st40.append((x+8,y-6))
-        self.st40.append((x+8,y-5))
-        self.st40.append((x+8,y-4))
-        self.st40.append((x+8,y-3))
-        self.st40.append((x+8,y-2))
-        self.st40.append((x+8,y-1))
-        self.st40.append((x+8,y))
-        self.st40.append((x+8,y+1))
-        self.st40.append((x+8,y+2))
-        self.st40.append((x+8,y+3))
-        self.st40.append((x+8,y+5))
-        self.st40.append((x+8,y+6))
+    
 
     @staticmethod
     def count_type(model, tree_condition):
