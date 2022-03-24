@@ -1,3 +1,27 @@
+from collections import deque
+
+def allclusters(model):
+    return model.cluster_count
+
+def clusterssize(model):
+    try:
+        return model.count_type(model, "Fine") + model.count_type(model, "Protected") + model.count_type(model, "Fireman") / model.cluster_count
+    except:
+        return 0
+
+def statefine(model):
+    return model.count_type(model, "Fine")
+
+def stateprotected(model):
+    return model.count_type(model, "Protected") + model.count_type(model, "Fireman")
+
+def statefire(model):
+    return model.count_type(model, "On Fire")
+
+def stateburned(model):
+    return model.count_type(model, "Burned Out")
+
+
 def newMatrix (size):
     line = []
     for i in range(0,size):
@@ -8,48 +32,42 @@ def newMatrix (size):
     return lines
 
 
-class SuperGraph: 
-
-    def __init__(self, row, col, g): 
-        self.ROW = row 
-        self.COL = col 
-        self.graph = g 
-
-# to check validity of cell
-    def isSafe(self, i, j, visited): 
-        return (i >= 0 and i < self.ROW and 
-                j >= 0 and j < self.COL and 
-                not visited[i][j] and self.graph[i][j]) 
-
-
-    def DFS(self, i, j, visited):
-
-        row = [-1, -1, -1,  0, 0,  1, 1, 1]; 
-        col = [-1,  0,  1, -1, 1, -1, 0, 1]; 
-
-
-        visited[i][j] = True
-
-        # check all 8 neighbours and mark them visited
-        # as they will be part of group
-        for k in range(8): 
-            if self.isSafe(i + row[k], j + col[k], visited): 
-                self.DFS(i + row[k], j + col[k], visited) 
-
-
-    def group(self): 
-
-        visited = [[False for j in range(self.COL)]for i in range(self.ROW)] 
-
-        count = 0
-        for i in range(self.ROW): 
-            for j in range(self.COL): 
-                # traverse not visited cell
-                if visited[i][j] == False and self.graph[i][j] == 1: 
-                    self.DFS(i, j, visited) 
-                    count += 1
-
-        return count
+row = [-1, -1, -1, 0, 1, 0, 1, 1]
+col = [-1, 1, 0, -1, -1, 1, 0, 1]
+ 
+def isSafe(mat, x, y, processed):
+    return (x >= 0 and x < len(processed)) and (y >= 0 and y < len(processed[0])) and \
+           mat[x][y] == 1 and not processed[x][y]
+ 
+def BFS(mat, processed, i, j):
+ 
+    q = deque()
+    q.append((i, j))
+    processed[i][j] = True
+ 
+    while q:
+        x, y = q.popleft()
+ 
+        for k in range(len(row)):
+            if isSafe(mat, x + row[k], y + col[k], processed):
+                processed[x + row[k]][y + col[k]] = True
+                q.append((x + row[k], y + col[k]))
+ 
+def countIslands(mat):
+    if not mat or not len(mat):
+        return 0
+ 
+    (M, N) = (len(mat), len(mat[0]))
+    processed = [[False for x in range(N)] for y in range(M)]
+ 
+    island = 0
+    for i in range(M):
+        for j in range(N):
+            if mat[i][j] == 1 and not processed[i][j]:
+                BFS(mat, processed, i, j)
+                island = island + 1
+ 
+    return island
 
 
 def addStrength(model, x, y):
