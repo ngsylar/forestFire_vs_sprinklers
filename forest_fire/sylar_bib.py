@@ -10,16 +10,13 @@ def clusterssize(model):
         return 0
 
 def statefine(model):
-    return model.count_type(model, "Fine")
+    return model.count_type(model, "Fine") / model.agents_total
 
-def stateprotected(model):
-    return model.count_type(model, "Protected") + model.count_type(model, "Sprinkler")
+def statesafe(model):
+    return (model.count_type(model, "Protected") + model.count_type(model, "Sprinkler")) / model.agents_total
 
-def statefire(model):
-    return model.count_type(model, "On Fire")
-
-def stateburned(model):
-    return model.count_type(model, "Burned Out")
+def stateburn(model):
+    return (model.count_type(model, "On Fire") + model.count_type(model, "Burned Out")) / model.agents_total
 
 
 def newMatrix (size):

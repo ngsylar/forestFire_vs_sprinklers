@@ -98,6 +98,9 @@ class ForestFire(Model):
                 self.schedule.add(new_tree)
                 self.alltrees[x][y] = new_tree
         
+        self.agents_total = 0
+        for tree in self.schedule.agents:
+            self.agents_total += 1
         self.count_clusters()
 
         self.running = True
@@ -155,25 +158,21 @@ def batch_run():
         'tree_density': 0.65
     }
     variable_params = {
-        # 'sprinkler_density': [0.0, 0.1, 0.2, 0.4, 0.6, 0.8]
-        'sprinkler_density': [0.4]
+        'sprinkler_density': [0.0, 0.1, 0.2, 0.4, 0.6, 0.8]
     }
-    experiments_per_parameter_configuration = 3
-    max_steps_per_simulation = 300
+    experiments_per_parameter_configuration = 300
 
     batch_run = BatchRunner(
         ForestFire,
         variable_params,
         fixed_params,
         iterations=experiments_per_parameter_configuration,
-        max_steps=max_steps_per_simulation,
         model_reporters = {
             "Clusters": allclusters,
             "Average Cluster Size": clusterssize,
-            "Trees Fine": statefine,
-            "Trees On Fire": statefire,
-            "Trees Burned Out": stateburned,
-            "Trees Protected": stateprotected
+            "Unaffected Vegetation": statefine,
+            "Saved Vegetation": statesafe,
+            "Wasted Vegetation": stateburn
         },
         agent_reporters = {
             "Condition": 'condition'
@@ -186,6 +185,9 @@ def batch_run():
 
     now = str(datetime.now()).replace(':','-')
     file_name_suffix =  ('_iter_'+str(experiments_per_parameter_configuration)+
-                        '_steps_'+str(max_steps_per_simulation)+'_'+now)
+                        '_forest_size_'+str(fixed_params['forest_size'])+
+                        '_tree_density_'+str(fixed_params['tree_density'])+
+                        '_sprinkler_density_manipulated'+
+                        '_steps_til_estabilize_system'+'_'+now)
     run_model_data.to_csv('Experimento-forest_fire_vs_sprinklers'+sep+'model_data'+file_name_suffix+'.csv')
     run_agent_data.to_csv('Experimento-forest_fire_vs_sprinklers'+sep+'agent_data'+file_name_suffix+'.csv')

@@ -40,8 +40,3 @@ class TreeCell(Agent):
                     else:
                         neighbor.condition = "Protected"
             self.condition = "Burned Out"
-        
-        # if self.condition == "Fine":
-        #     for neighbor in self.model.grid.neighbor_iter(self.pos):
-        #         if (neighbor.condition == "Burned Out"):
-        #             self.model.cluster_count +=1
