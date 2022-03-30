@@ -68,7 +68,7 @@ class ForestFire(Model):
         # Place a tree in each cell with Prob = density
         for (contents, x, y) in self.grid.coord_iter():
             if self.random.random() < self.fman_density:
-                # Create a fireman
+                # Create a sprinkler
                 new_fman = TreeCell((x, y), self)
                 new_fman.condition = "Sprinkler"
                 new_fman.strength = 0.92
@@ -183,11 +183,6 @@ def batch_run():
     run_model_data = batch_run.get_model_vars_dataframe()
     run_agent_data = batch_run.get_agent_vars_dataframe()
 
-    now = str(datetime.now()).replace(':','-')
-    file_name_suffix =  ('_iter_'+str(experiments_per_parameter_configuration)+
-                        '_forest_size_'+str(fixed_params['forest_size'])+
-                        '_tree_density_'+str(fixed_params['tree_density'])+
-                        '_sprinkler_density_manipulated'+
-                        '_steps_til_estabilize_system'+'_'+now)
-    run_model_data.to_csv('Experimento-forest_fire_vs_sprinklers'+sep+'model_data'+file_name_suffix+'.csv')
-    run_agent_data.to_csv('Experimento-forest_fire_vs_sprinklers'+sep+'agent_data'+file_name_suffix+'.csv')
+    now = str(datetime.now()).replace(':','-').replace(' ','_')
+    run_model_data.to_csv('Experimento-forest_fire_vs_sprinklers'+sep+'model_data'+'_'+now+'.csv')
+    run_agent_data.to_csv('Experimento-forest_fire_vs_sprinklers'+sep+'agent_data'+'_'+now+'.csv')
